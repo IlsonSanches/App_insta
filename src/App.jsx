@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ContentGenerator from "./components/ContentGenerator/ContentGenerator.jsx";
 
 // Sistema de Planejamento Semanal Automático - Agenda Insta Jet Chicken
 // Funcionalidades: Geração automática de agenda, histórico semanal, dicas dinâmicas
@@ -199,6 +200,7 @@ function generateInitialWeek(weekId) {
 }
 
 export default function AgendaInstaJetChicken() {
+  const [activeTab, setActiveTab] = useState("agenda"); // "agenda" ou "gerador"
   const [weeklyData, setWeeklyData] = useState(() => {
     try {
       const raw = localStorage.getItem("aji_weekly_v2");
@@ -345,143 +347,179 @@ export default function AgendaInstaJetChicken() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 via-white to-yellow-100 p-6">
-      <header className="max-w-6xl mx-auto flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-extrabold">Agenda Insta - Jet Chicken</h1>
-          <p className="text-sm text-gray-600">
-            Sistema de Planejamento Semanal Automático • Semana {formatWeekId(currentWeekId)}
-          </p>
+      <header className="max-w-6xl mx-auto mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-extrabold">Agenda Insta - Jet Chicken</h1>
+            <p className="text-sm text-gray-600">
+              Sistema de Planejamento Semanal Automático • Semana {formatWeekId(currentWeekId)}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {activeTab === "agenda" && (
+              <>
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="px-4 py-2 bg-yellow-500 text-white rounded-lg shadow hover:brightness-95"
+                >
+                  ➕ Nova Postagem
+                </button>
+                <button
+                  onClick={regenerateWeek}
+                  className="px-3 py-2 bg-blue-500 text-white rounded-lg shadow hover:brightness-95"
+                  title="Regenerar agenda da semana"
+                >
+                  🔄 Regenerar Semana
+                </button>
+                <button
+                  onClick={() => { localStorage.removeItem('aji_weekly_v2'); window.location.reload(); }}
+                  className="px-3 py-1 border rounded text-sm"
+                  title="Resetar sistema"
+                >
+                  Resetar Sistema
+                </button>
+              </>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        
+        {/* Navigation Tabs */}
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
           <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-2 bg-yellow-500 text-white rounded-lg shadow hover:brightness-95"
+            onClick={() => setActiveTab("agenda")}
+            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+              activeTab === "agenda"
+                ? "bg-white text-yellow-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
           >
-            ➕ Nova Postagem
+            📅 Agenda Semanal
           </button>
           <button
-            onClick={regenerateWeek}
-            className="px-3 py-2 bg-blue-500 text-white rounded-lg shadow hover:brightness-95"
-            title="Regenerar agenda da semana"
+            onClick={() => setActiveTab("gerador")}
+            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+              activeTab === "gerador"
+                ? "bg-white text-orange-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
           >
-            🔄 Regenerar Semana
-          </button>
-          <button
-            onClick={() => { localStorage.removeItem('aji_weekly_v2'); window.location.reload(); }}
-            className="px-3 py-1 border rounded text-sm"
-            title="Resetar sistema"
-          >
-            Resetar Sistema
+            🤖 Gerador IA
           </button>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="col-span-2 space-y-6">
-          <DashboardStats posts={posts} />
+      <main className="max-w-6xl mx-auto">
+        {activeTab === "agenda" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <section className="col-span-2 space-y-6">
+              <DashboardStats posts={posts} />
 
-          <div className="bg-white rounded-2xl p-4 shadow">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold">Planejador Semanal</h2>
-              <div className="flex items-center gap-2">
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="border rounded px-2 py-1 text-sm"
-                >
-                  <option>Todos</option>
-                  {PILLARS.map((p) => (
-                    <option key={p}>{p}</option>
-                  ))}
-                </select>
-                <input
-                  placeholder="Pesquisar legenda..."
-                  className="border rounded px-2 py-1 text-sm"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+              <div className="bg-white rounded-2xl p-4 shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="font-semibold">Planejador Semanal</h2>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                      className="border rounded px-2 py-1 text-sm"
+                    >
+                      <option>Todos</option>
+                      {PILLARS.map((p) => (
+                        <option key={p}>{p}</option>
+                      ))}
+                    </select>
+                    <input
+                      placeholder="Pesquisar legenda..."
+                      className="border rounded px-2 py-1 text-sm"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <WeeklyCalendar
+                  posts={filtered}
+                  onMarkPosted={markPosted}
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
                 />
               </div>
-            </div>
 
-            <WeeklyCalendar
-              posts={filtered}
-              onMarkPosted={markPosted}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-            />
-          </div>
+              <div className="bg-white rounded-2xl p-4 shadow">
+                <h2 className="font-semibold mb-3">Histórico / Tabela</h2>
+                <HistoryTable posts={posts} onUpdateMetrics={updateMetrics} onMarkPosted={markPosted} />
+              </div>
+            </section>
 
-          <div className="bg-white rounded-2xl p-4 shadow">
-            <h2 className="font-semibold mb-3">Histórico / Tabela</h2>
-            <HistoryTable posts={posts} onUpdateMetrics={updateMetrics} onMarkPosted={markPosted} />
-          </div>
-        </section>
-
-        <aside className="space-y-6">
-          <div className="bg-white rounded-2xl p-4 shadow">
-            <h3 className="font-semibold mb-2">Próximos Posts</h3>
-            <div className="space-y-2">
-              {upcoming.length === 0 && <p className="text-sm text-gray-500">Nenhum post planejado</p>}
-              {upcoming.map((p) => (
-                <div key={p.id} className="p-2 border rounded flex items-start gap-3">
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">{p.type} • {p.pilar}</div>
-                    <div className="text-xs text-gray-600">{p.date} — {p.caption.slice(0, 60)}{p.caption.length>60? '...' : ''}</div>
-                    <div className="text-xs mt-1">{p.hashtags.join(' ')}</div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <button onClick={() => markPosted(p.id)} className="text-xs bg-green-500 px-2 py-1 rounded text-white">Marcar Postado</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 shadow">
-            <h3 className="font-semibold mb-2">Dicas da Semana</h3>
-            <ul className="text-sm text-gray-700 list-disc ml-5">
-              {(currentWeek.tips || WEEKLY_TIPS.slice(0, 4)).map((tip, index) => (
-                <li key={index}>{tip}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 shadow">
-            <h3 className="font-semibold mb-2">Histórico de Semanas</h3>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {weekHistory.slice(0, 5).map((weekId) => (
-                <div key={weekId} className="flex items-center justify-between p-2 border rounded">
-                  <div>
-                    <div className="text-sm font-medium">Semana {formatWeekId(weekId)}</div>
-                    <div className="text-xs text-gray-500">
-                      {weeklyData[weekId]?.posts?.length || 0} posts • 
-                      {weeklyData[weekId]?.posts?.filter(p => p.status === 'postado').length || 0} postados
+            <aside className="space-y-6">
+              <div className="bg-white rounded-2xl p-4 shadow">
+                <h3 className="font-semibold mb-2">Próximos Posts</h3>
+                <div className="space-y-2">
+                  {upcoming.length === 0 && <p className="text-sm text-gray-500">Nenhum post planejado</p>}
+                  {upcoming.map((p) => (
+                    <div key={p.id} className="p-2 border rounded flex items-start gap-3">
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{p.type} • {p.pilar}</div>
+                        <div className="text-xs text-gray-600">{p.date} — {p.caption.slice(0, 60)}{p.caption.length>60? '...' : ''}</div>
+                        <div className="text-xs mt-1">{p.hashtags.join(' ')}</div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button onClick={() => markPosted(p.id)} className="text-xs bg-green-500 px-2 py-1 rounded text-white">Marcar Postado</button>
+                      </div>
                     </div>
-                  </div>
-                  <button
-                    onClick={() => setCurrentWeekId(weekId)}
-                    className={`text-xs px-2 py-1 rounded ${
-                      weekId === currentWeekId 
-                        ? 'bg-yellow-500 text-white' 
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {weekId === currentWeekId ? 'Atual' : 'Ver'}
-                  </button>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow">
-            <h3 className="font-semibold mb-2">Hashtags sugeridas</h3>
-            <div className="flex flex-wrap gap-2">
-              {SAMPLE_HASHTAGS.map((h) => (
-                <span key={h} className="text-xs px-2 py-1 border rounded">{h}</span>
-              ))}
-            </div>
+              <div className="bg-white rounded-2xl p-4 shadow">
+                <h3 className="font-semibold mb-2">Dicas da Semana</h3>
+                <ul className="text-sm text-gray-700 list-disc ml-5">
+                  {(currentWeek.tips || WEEKLY_TIPS.slice(0, 4)).map((tip, index) => (
+                    <li key={index}>{tip}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 shadow">
+                <h3 className="font-semibold mb-2">Histórico de Semanas</h3>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {weekHistory.slice(0, 5).map((weekId) => (
+                    <div key={weekId} className="flex items-center justify-between p-2 border rounded">
+                      <div>
+                        <div className="text-sm font-medium">Semana {formatWeekId(weekId)}</div>
+                        <div className="text-xs text-gray-500">
+                          {weeklyData[weekId]?.posts?.length || 0} posts • 
+                          {weeklyData[weekId]?.posts?.filter(p => p.status === 'postado').length || 0} postados
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setCurrentWeekId(weekId)}
+                        className={`text-xs px-2 py-1 rounded ${
+                          weekId === currentWeekId 
+                            ? 'bg-yellow-500 text-white' 
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {weekId === currentWeekId ? 'Atual' : 'Ver'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 shadow">
+                <h3 className="font-semibold mb-2">Hashtags sugeridas</h3>
+                <div className="flex flex-wrap gap-2">
+                  {SAMPLE_HASHTAGS.map((h) => (
+                    <span key={h} className="text-xs px-2 py-1 border rounded">{h}</span>
+                  ))}
+                </div>
+              </div>
+            </aside>
           </div>
-        </aside>
+        ) : (
+          <ContentGenerator />
+        )}
       </main>
 
       <AnimatePresence>{showForm && <PostForm onClose={() => setShowForm(false)} onSave={addPost} />}</AnimatePresence>
